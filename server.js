@@ -20,7 +20,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "*", // Permite conexões de qualquer origem. Para produção, restrinja a URL do seu site.
+        origin: "*", // Permite conexões de qualquer origem.
     }
 });
 
@@ -31,7 +31,9 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // ==========================
 // 3. MIDDLEWARES DO EXPRESS
 // ==========================
+// Serve os arquivos estáticos (index.html, css, etc.) da pasta 'public'
 app.use(express.static(path.join(__dirname, 'public')));
+// Permite que o servidor entenda JSON no corpo das requisições
 app.use(express.json());
 
 // ==========================
@@ -53,7 +55,7 @@ async function generateUploadURL(fileType = 'image/jpeg') {
         Key: objectKey,
         ContentType: fileType
     });
-    return await getSignedUrl(s3Client, command, { expiresIn: 60 }); // URL válida por 60 segundos
+    return await getSignedUrl(s3Client, command, { expiresIn: 60 });
 }
 
 // ==========================
@@ -161,7 +163,6 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-    console.log(`[Socket] Usuário conectado: ${socket.username} (${socket.id})`);
     onlineUsers[socket.id] = socket.username;
     userSockets[socket.username] = socket.id;
     updateUsers();
@@ -171,7 +172,6 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         const username = onlineUsers[socket.id];
         if (username) {
-            console.log(`[Socket] Usuário desconectado: ${username}`);
             delete onlineUsers[socket.id];
             delete userSockets[username];
             updateUsers();
